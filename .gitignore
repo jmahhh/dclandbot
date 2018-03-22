@@ -1,4 +1,5 @@
 watcher/watcher_js/config.json
+package-lock.json
 
 # Logs
 logs
@@ -35,6 +36,7 @@ bower_components
 build/Release
 
 # Dependency directories
+node_modules
 watcher/watcher_js/node_modules/
 jspm_packages/
 
