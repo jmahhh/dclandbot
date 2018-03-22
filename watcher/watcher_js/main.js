@@ -26,8 +26,8 @@ const decodeTokenId = (hexRepresentation) => {
   return [ x.toString(10), y.toString(10) ];
 }
 
-// const web3 = new Web3(new Web3.providers.HttpProvider("http://geth:8545"));
-const web3 = new Web3(new Web3.providers.HttpProvider(config.serverURL));
+const web3 = new Web3(new Web3.providers.HttpProvider("http://geth:8545"));
+// const web3 = new Web3(new Web3.providers.HttpProvider(config.serverURL));
 const T = new Twit(config.twitter);
 
 const main = async () => {
