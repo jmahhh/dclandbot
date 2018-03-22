@@ -58,7 +58,7 @@ const main = async () => {
 			}
 			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-			const price = eventData.args.price.toNumber() / 10 ** MANA_DECIMALS;
+			const price = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
 			winston.verbose(eventData.transactionHash);
 			winston.info(`auctionSuccessfulEvent data: assetId [${assetId}] | MANAprice ${price}`);
 			T.post('statuses/update', { status: `Auction successful... \n\n Coordinates: [${assetId}] \n Price: ${price} MANA` }, (err, data, response) => {
