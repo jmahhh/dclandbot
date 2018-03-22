@@ -1,0 +1,14 @@
+{
+  "name": "watcher",
+  "version": "0.0.1",
+  "description": "",
+  "main": "main.js",
+  "scripts": {},
+  "author": "jmahhh",
+  "license": "ISC",
+  "dependencies": {
+    "bignumber.js": "^6.0.0",
+    "web3": "0.20.0",
+    "winston": "^2.4.1"
+  }
+}
