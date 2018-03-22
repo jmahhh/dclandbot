@@ -2,6 +2,7 @@ const Web3 = require('web3');
 const winston = require('winston');
 const BigNumber = require('bignumber.js');
 const Twit = require('twit');
+const rp = require('request-promise');
 
 const SolidityCoder = require('web3/lib/solidity/coder.js');
 const config = require('./config.json');
@@ -26,42 +27,45 @@ const decodeTokenId = (hexRepresentation) => {
   return [ x.toString(10), y.toString(10) ];
 }
 
-const web3 = new Web3(new Web3.providers.HttpProvider("http://geth:8545"));
-// const web3 = new Web3(new Web3.providers.HttpProvider(config.serverURL));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.serverURL));
 const T = new Twit(config.twitter);
 
 const main = async () => {
 	try {
 		const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
 		const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
-
-		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {}, (err, eventData) => {
+		let usdPrice = await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD');
+		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
 			}
 			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-			const price = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
+			const landPrice = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
+			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
+			usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
 			const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
 			winston.verbose(eventData.transactionHash);
-			winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${price} | expiry ${expiry}`);
-			T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${price} MANA \n Expiry: ${expiry}` }, (err, data, response) => {
+			winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${landPrice} (${usdPrice} USD) | expiry ${expiry}`);
+			T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD) \n Expiry: ${expiry}` }, (err, data, response) => {
 				if (err) winston.error(err);
 			});
 		});
 
-		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, (err, eventData) => {
+		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
 			}
 			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-			const price = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
+			const landPrice = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
+			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
+			usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
 			winston.verbose(eventData.transactionHash);
-			winston.info(`auctionSuccessfulEvent data: assetId [${assetId}] | MANAprice ${price}`);
-			T.post('statuses/update', { status: `Auction successful... \n\n Coordinates: [${assetId}] \n Price: ${price} MANA` }, (err, data, response) => {
+			winston.info(`auctionSuccessfulEvent data: assetId [${assetId}] | MANAprice ${landPrice}`);
+			T.post('statuses/update', { status: `Auction successful... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD)` }, (err, data, response) => {
 				if (err) winston.error(err);
 			});
 		});
