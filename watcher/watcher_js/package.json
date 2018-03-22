@@ -8,6 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "bignumber.js": "^6.0.0",
+    "twit": "^2.2.9",
     "web3": "0.20.0",
     "winston": "^2.4.1"
   }

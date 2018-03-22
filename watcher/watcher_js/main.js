@@ -1,7 +1,10 @@
 const Web3 = require('web3');
 const winston = require('winston');
 const BigNumber = require('bignumber.js');
+const Twit = require('twit');
+
 const SolidityCoder = require('web3/lib/solidity/coder.js');
+const config = require('./config.json');
 
 winston.level = 'debug';
 
@@ -24,7 +27,8 @@ const decodeTokenId = (hexRepresentation) => {
 }
 
 // const web3 = new Web3(new Web3.providers.HttpProvider("http://geth:8545"));
-const web3 = new Web3(new Web3.providers.HttpProvider("http://159.65.138.91:8545"));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.serverURL));
+const T = new Twit(config.twitter);
 
 const main = async () => {
 	try {
@@ -36,12 +40,15 @@ const main = async () => {
 				winston.error(err);
 				return false;
 			}
-			console.log(eventData.args.assetId)
+			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
 			const price = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
 			const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
 			winston.verbose(eventData.transactionHash);
 			winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${price} | expiry ${expiry}`);
+			T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${price} MANA \n Expiry: ${expiry}` }, (err, data, response) => {
+				if (err) winston.error(err);
+			});
 		});
 
 		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, (err, eventData) => {
@@ -49,11 +56,14 @@ const main = async () => {
 				winston.error(err);
 				return false;
 			}
-			console.log(eventData.args.assetId)
+			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
 			const price = eventData.args.price.toNumber() / 10 ** MANA_DECIMALS;
 			winston.verbose(eventData.transactionHash);
 			winston.info(`auctionSuccessfulEvent data: assetId [${assetId}] | MANAprice ${price}`);
+			T.post('statuses/update', { status: `Auction successful... \n\n Coordinates: [${assetId}] \n Price: ${price} MANA` }, (err, data, response) => {
+				if (err) winston.error(err);
+			});
 		});
 
 		const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {}, (err, eventData) => {
@@ -61,10 +71,13 @@ const main = async () => {
 				winston.error(err);
 				return false;
 			}
-			console.log(eventData.args.assetId)
+			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
 			winston.verbose(eventData.transactionHash);
 			winston.info(`auctionCancelledEvent data: assetId [${assetId}]`);
+			T.post('statuses/update', { status: `Auction cancelled... \n\n Coordinates: [${assetId}]` }, (err, data, response) => {
+				if (err) winston.error(err);
+			});
 		});
 	} catch(err) {
 		winston.error(err);
