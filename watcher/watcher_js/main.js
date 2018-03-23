@@ -65,7 +65,7 @@ const main = async () => {
 			winston.verbose(eventData.transactionHash);
 			const logString = `Auction successful! \n\n Coordinates: [${assetId}] \n Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)`;
 			winston.verbose(logString);
-			if (config.twitterDisable) {
+			if (!config.disableTwitter) {
 				T.post('statuses/update', { status: logString }, (err, data, response) => {
 					if (err) winston.error(err);
 				});
