@@ -1,4 +1,5 @@
 watcher/watcher_js/config.json
+watcher/watcher_js/database/mongo/config.json
 package-lock.json
 
 # Logs
