@@ -34,24 +34,23 @@ const main = async () => {
 	try {
 		const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
 		const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
-		let usdPrice = await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD');
-		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {}, async (err, eventData) => {
-			if (err) {
-				winston.error(err);
-				return false;
-			}
-			console.log(eventData)
-			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-			const landPrice = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
-			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-			usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
-			const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
-			winston.verbose(eventData.transactionHash);
-			winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${landPrice} (${usdPrice} USD) | expiry ${expiry}`);
-			T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD) \n Expiry: ${expiry}` }, (err, data, response) => {
-				if (err) winston.error(err);
-			});
-		});
+		// const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {}, async (err, eventData) => {
+		// 	if (err) {
+		// 		winston.error(err);
+		// 		return false;
+		// 	}
+		// 	console.log(eventData)
+		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
+		// 	const landPrice = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
+		// 	let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
+		// 	usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
+		// 	const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
+		// 	winston.verbose(eventData.transactionHash);
+		// 	winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${landPrice} (${usdPrice} USD) | expiry ${expiry}`);
+		// 	T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD) \n Expiry: ${expiry}` }, (err, data, response) => {
+		// 		if (err) winston.error(err);
+		// 	});
+		// });
 
 		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, async (err, eventData) => {
 			if (err) {
@@ -64,25 +63,28 @@ const main = async () => {
 			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
 			usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
 			winston.verbose(eventData.transactionHash);
-			winston.info(`auctionSuccessfulEvent data: assetId [${assetId}] | MANAprice ${landPrice}`);
-			T.post('statuses/update', { status: `Auction successful... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD)` }, (err, data, response) => {
-				if (err) winston.error(err);
-			});
+			const logString = `Auction successful! \n\n Coordinates: [${assetId}] \n Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)`;
+			winston.verbose(logString);
+			if (config.twitterDisable) {
+				T.post('statuses/update', { status: logString }, (err, data, response) => {
+					if (err) winston.error(err);
+				});
+			}
 		});
 
-		const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {}, (err, eventData) => {
-			if (err) {
-				winston.error(err);
-				return false;
-			}
-			console.log(eventData)
-			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-			winston.verbose(eventData.transactionHash);
-			winston.info(`auctionCancelledEvent data: assetId [${assetId}]`);
-			T.post('statuses/update', { status: `Auction cancelled... \n\n Coordinates: [${assetId}]` }, (err, data, response) => {
-				if (err) winston.error(err);
-			});
-		});
+		// const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {}, (err, eventData) => {
+		// 	if (err) {
+		// 		winston.error(err);
+		// 		return false;
+		// 	}
+		// 	console.log(eventData)
+		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
+		// 	winston.verbose(eventData.transactionHash);
+		// 	winston.info(`auctionCancelledEvent data: assetId [${assetId}]`);
+		// 	T.post('statuses/update', { status: `Auction cancelled... \n\n Coordinates: [${assetId}]` }, (err, data, response) => {
+		// 		if (err) winston.error(err);
+		// 	});
+		// });
 	} catch(err) {
 		winston.error(err);
 	}
