@@ -9,13 +9,6 @@
   "author": "jmahhh",
   "license": "ISC",
   "dependencies": {
-    "babel-register": "^6.26.0",
-    "bignumber.js": "^6.0.0",
-    "mongodb": "^3.0.4",
-    "request-promise": "^4.2.2",
-    "twit": "^2.2.9",
-    "web3": "0.20.0",
-    "winston": "^2.4.1",
     "babel-core": "^6.5.2",
     "babel-loader": "^6.2.1",
     "babel-plugin-add-module-exports": "^0.1.2",
@@ -26,7 +19,15 @@
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-react": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
-    "babel-runtime": "^6.3.19"
+    "babel-register": "^6.26.0",
+    "babel-runtime": "^6.3.19",
+    "bignumber.js": "^6.0.0",
+    "moment": "^2.21.0",
+    "mongodb": "^3.0.4",
+    "request-promise": "^4.2.2",
+    "twit": "^2.2.9",
+    "web3": "0.20.0",
+    "winston": "^2.4.1"
   },
   "devDependencies": {
     "babel-plugin-typecheck": "^3.6.0",
