@@ -6,6 +6,8 @@ import winston from 'winston';
 import Twit from 'twit';
 
 import SolidityCoder from 'web3/lib/solidity/coder.js';
+import mongoConfig from './mongo/config.json';
+import { MongoClient } from 'mongodb';
 // import config from './config.json';
 
 winston.level = 'debug';
@@ -17,61 +19,70 @@ const DCL_MARKET_ABI =
 // from https://github.com/decentraland/auction/blob/578219535f962232dc984f76adf79c77a15c9603/scripts/recovery.js
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://159.65.138.91:8545/'));
+const MONGO_URL = `mongodb://${mongoConfig.dbUser}:${mongoConfig.dbPassword}@ds223559-a0.mlab.com:23559,ds223559-a1.mlab.com:23559/dclandbot?replicaSet=rs-ds223559`;
 // const T = new Twit(config.twitter);
 let START_BLOCK = 5283772;
 const main = async () => {
 	try {	
-		const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
-		const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
-
-		// const latestMigration = await db.dbGetLatestMigration();
-		const latestMigration = null;
-		console.log(latestMigration, ' is latestMigration');
-		if (latestMigration) START_BLOCK = latestMigration.blockNumber;
-
-		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {fromBlock: START_BLOCK, toBlock: START_BLOCK+1000}, async (err, eventData) => {
+		MongoClient.connect(MONGO_URL, async (err, client) => {
 			if (err) {
-				winston.error(err);
-				return false;
-			}
-			console.log('AUCTION CREATED');
-			const { blockNumber, transactionHash } = eventData;
-			const { assetId, seller, priceInWei, expiresAt } = eventData.args;
-			const landId = utils.decodeTokenId(assetId.toString(16));
-			const landPrice = utils.weiToRealPrice(priceInWei);
-			db.dbAuctionCreated(landId, landPrice, seller, transactionHash, blockNumber);
-		});
-
-		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {fromBlock: START_BLOCK, toBlock: START_BLOCK+1000}, async (err, eventData) => {
-			if (err) {
-				winston.error(err);
-				return false;
+				throw err;
 			}
 
-			console.log('AUCTION SUCCESSFUL');
-			const { blockNumber, transactionHash } = eventData;
-			const { assetId, seller, totalPrice, buyer, expiresAt } = eventData.args;
-			const landId = utils.decodeTokenId(assetId.toString(16));
-			const landPrice = utils.weiToRealPrice(totalPrice);
-			db.dbAuctionSuccess(landId, landPrice, seller, buyer, transactionHash, blockNumber);
-		});
+			globalVar.mongodbClient = client;
+			const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
+			const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
 
-		const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {fromBlock: START_BLOCK, toBlock: START_BLOCK+1000}, async (err, eventData) => {
-			if (err) {
-				winston.error(err);
-				return false;
-			}
-			
-			console.log('AUCTION CANCELLED');
-			const { blockNumber, transactionHash } = eventData;
-			const { assetId, seller } = eventData.args;
-			const landId = utils.decodeTokenId(assetId.toString(16));
-			const landPrice = 0;
-			// const usdPrice = await utils.toUsdPrice(landPrice);
-			db.dbAuctionCancelled(landId, landPrice, seller, transactionHash, blockNumber);
-		});
+			// const latestMigration = await db.dbGetLatestMigration();
+			const latestMigration = null;
+			console.log(latestMigration, ' is latestMigration');
+			if (latestMigration) START_BLOCK = latestMigration.blockNumber;
 
-		await db.dbMigration(web3.eth.blockNumber);
+			const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {fromBlock: START_BLOCK, toBlock: 'latest'}, async (err, eventData) => {
+				if (err) {
+					winston.error(err);
+					return false;
+				}
+				console.log('AUCTION CREATED');
+				const { blockNumber, transactionHash } = eventData;
+				const { assetId, seller, priceInWei, expiresAt } = eventData.args;
+				const landId = utils.decodeTokenId(assetId.toString(16));
+				const landPrice = utils.weiToRealPrice(priceInWei);
+				db.dbAuctionCreated(landId, landPrice, seller, transactionHash, blockNumber);
+			});
+
+			const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {fromBlock: START_BLOCK, toBlock: 'latest'}, async (err, eventData) => {
+				if (err) {
+					winston.error(err);
+					return false;
+				}
+
+				console.log('AUCTION SUCCESSFUL');
+				const { blockNumber, transactionHash } = eventData;
+				const { assetId, seller, totalPrice, buyer, expiresAt } = eventData.args;
+				const landId = utils.decodeTokenId(assetId.toString(16));
+				const landPrice = utils.weiToRealPrice(totalPrice);
+				db.dbAuctionSuccess(landId, landPrice, seller, buyer, transactionHash, blockNumber);
+			});
+
+			const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {fromBlock: START_BLOCK, toBlock: 'latest'}, async (err, eventData) => {
+				if (err) {
+					winston.error(err);
+					return false;
+				}
+				
+				console.log('AUCTION CANCELLED');
+				const { blockNumber, transactionHash } = eventData;
+				const { assetId, seller } = eventData.args;
+				const landId = utils.decodeTokenId(assetId.toString(16));
+				const landPrice = 0;
+				// const usdPrice = await utils.toUsdPrice(landPrice);
+				db.dbAuctionCancelled(landId, landPrice, seller, transactionHash, blockNumber);
+			});
+
+			await db.dbMigration(web3.eth.blockNumber);
+		})
+		
 	} catch(err) {
 		winston.error(err);
 	}

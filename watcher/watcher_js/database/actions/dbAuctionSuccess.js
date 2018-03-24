@@ -8,7 +8,6 @@ export default async function dbAuctionSuccess(landId, price, seller, buyer, txH
 		buyer,
 		txHash,
 		blockNumber,
-		timestamp: new Date(),
 		status: 'success'
 	});
 

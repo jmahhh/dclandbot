@@ -8,7 +8,6 @@ export default async function dbAuctionCancelled(landId, price, seller, txHash, 
 		buyer: null,
 		txHash,
 		blockNumber,
-		timestamp: new Date(),
 		status: 'cancel'
 	});
 
