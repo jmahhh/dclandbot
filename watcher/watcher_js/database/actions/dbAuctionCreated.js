@@ -1,5 +1,4 @@
 import { upsert, remove } from '../mongo/common';
-import moment from 'moment';
 
 export default async function dbAuctionCreated(landId, price, seller, txHash, blockNumber) {
 	const result = await upsert('Auctions',{
@@ -9,7 +8,7 @@ export default async function dbAuctionCreated(landId, price, seller, txHash, bl
 		buyer: null,
 		txHash,
 		blockNumber,
-		timestamp: moment.valueOf(),
+		timestamp: new Date(),
 		status: 'create'
 	});
 

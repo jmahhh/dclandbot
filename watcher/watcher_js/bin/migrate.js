@@ -1,2 +1,2 @@
 require('../server.babel'); // babel registration (runtime transpilation for node)
-require('../database/test');
+require('../database/migration');

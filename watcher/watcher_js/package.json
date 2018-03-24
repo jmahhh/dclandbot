@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "node ./bin/server.js"
+    "migrate": "node ./bin/migrate.js"
   },
   "author": "jmahhh",
   "license": "ISC",
