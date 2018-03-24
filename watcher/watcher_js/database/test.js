@@ -1,6 +1,5 @@
-// import dbAuctionCreated from './actions/dbAuctionCreated';
-// import dbAuctionCancelled from './actions/dbAuctionCancelled';
-// import dbAuctionSuccess from './actions/dbAuctionSuccess';
+import * as db from './actions';
+
 import * as utils from '../utils';
 import Web3 from 'web3';
 import winston from 'winston';
@@ -20,73 +19,49 @@ const DCL_MARKET_ABI =
 
 const web3 = new Web3(new Web3.providers.HttpProvider('http://159.65.138.91:8545/'));
 // const T = new Twit(config.twitter);
-
+const GENESIS_BLOCK = 5283772;
 const main = async () => {
-	try {
+	try {	
 		const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
 		const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
-		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {fromBlock: 5283772, toBlock: 	5284090}, async (err, eventData) => {
+		const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {fromBlock: 5310000, toBlock: 'latest'}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
 			}
 			const { blockNumber, transactionHash } = eventData;
 			const { assetId, seller, priceInWei, expiresAt } = eventData.args;
-			console.log("===START===");
-			const realAssetId = utils.decodeTokenId(assetId.toString(16));
+			const landId = utils.decodeTokenId(assetId.toString(16));
 			const landPrice = utils.weiToRealPrice(priceInWei);
-			const usdPrice = await utils.toUsdPrice(landPrice);
-			console.log('landId: ', realAssetId);
-			console.log('price: ', landPrice);
-			console.log('usdPrice: ', usdPrice);
-			console.log('seller: ', seller);
-			console.log('txHash: ', transactionHash);
-			console.log('blockNumber: ', blockNumber);
-			// const landPrice = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
-			// let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-			// usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
-			// const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
-			// winston.verbose(eventData.transactionHash);
-			// winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${landPrice} (${usdPrice} USD) | expiry ${expiry}`);
-			console.log("===END===");
-			// T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD) \n Expiry: ${expiry}` }, (err, data, response) => {
-			// 	if (err) winston.error(err);
-			// });
+			db.dbAuctionCreated(landId, landPrice, seller, transactionHash, blockNumber);
 		});
 
-		// const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, async (err, eventData) => {
-		// 	if (err) {
-		// 		winston.error(err);
-		// 		return false;
-		// 	}
-		// 	console.log(eventData)
-		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-		// 	const landPrice = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
-		// 	let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-		// 	usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
-		// 	winston.verbose(eventData.transactionHash);
-		// 	const logString = `Auction successful! \n\n Coordinates: [${assetId}] \n Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)`;
-		// 	winston.verbose(logString);
-		// 	if (!config.disableTwitter) {
-		// 		T.post('statuses/update', { status: logString }, (err, data, response) => {
-		// 			if (err) winston.error(err);
-		// 		});
-		// 	}
-		// });
+		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {fromBlock: 5310000, toBlock: 'latest'}, async (err, eventData) => {
+			if (err) {
+				winston.error(err);
+				return false;
+			}
 
-		// const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {}, (err, eventData) => {
-		// 	if (err) {
-		// 		winston.error(err);
-		// 		return false;
-		// 	}
-		// 	console.log(eventData)
-		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-		// 	winston.verbose(eventData.transactionHash);
-		// 	winston.info(`auctionCancelledEvent data: assetId [${assetId}]`);
-		// 	T.post('statuses/update', { status: `Auction cancelled... \n\n Coordinates: [${assetId}]` }, (err, data, response) => {
-		// 		if (err) winston.error(err);
-		// 	});
-		// });
+			const { blockNumber, transactionHash } = eventData;
+			const { assetId, seller, totalPrice, buyer, expiresAt } = eventData.args;
+			const landId = utils.decodeTokenId(assetId.toString(16));
+			const landPrice = utils.weiToRealPrice(totalPrice);
+			db.dbAuctionSuccess(landId, landPrice, seller, buyer, transactionHash, blockNumber);
+		});
+
+		const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {fromBlock: 5310000, toBlock: 'latest'}, async (err, eventData) => {
+			if (err) {
+				winston.error(err);
+				return false;
+			}
+			
+			const { blockNumber, transactionHash } = eventData;
+			const { assetId, seller } = eventData.args;
+			const landId = utils.decodeTokenId(assetId.toString(16));
+			const landPrice = 0;
+			// const usdPrice = await utils.toUsdPrice(landPrice);
+			db.dbAuctionCancelled(landId, landPrice, seller, transactionHash, blockNumber);
+		});
 	} catch(err) {
 		winston.error(err);
 	}

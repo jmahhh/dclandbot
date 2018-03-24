@@ -9,5 +9,5 @@ export default function decodeTokenId(hexRepresentation) {
   let y = new BigNumber('0x' + hexRepresentation.slice(yLength, hexRepresentation.length));
   if (x.gt(max)) x = base.minus(x).times(-1);
   if (y.gt(max)) y = base.minus(y).times(-1);
-  return [ x.toString(10), y.toString(10) ];
+  return [ x.toString(10), y.toString(10) ].toString();
 }

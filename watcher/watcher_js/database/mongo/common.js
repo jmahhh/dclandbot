@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 import config from './config.json';
-const url = `mongodb://${config.dbUser}:${config.dbPassword}GyxzuEG6A4dEbGMqgLUiQC7JTFf7w0@ds121999.mlab.com:21999/dclandbot`;
+const url = `mongodb://${config.dbUser}:${config.dbPassword}@ds121999.mlab.com:21999/dclandbot`;
 export const upsert = (dbName, dbFilter) => {
 	return new Promise((resolve, reject) => {
 		MongoClient.connect(url, (err, client) => {
