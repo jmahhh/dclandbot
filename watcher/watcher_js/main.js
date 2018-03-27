@@ -61,7 +61,7 @@ const main = async () => {
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
 			const landPrice = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
 			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-			usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
+			usdPrice = Math.round(landPrice * parseFloat(usdPrice[0].price_usd) * 100) / 100;
 			winston.verbose(eventData.transactionHash);
 			const logString = `Auction successful! \n\n Coordinates: [${assetId}] \n Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)`;
 			winston.verbose(logString);
