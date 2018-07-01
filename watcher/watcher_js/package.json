@@ -9,6 +9,7 @@
   "author": "jmahhh",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "babel-core": "^6.5.2",
     "babel-loader": "^6.2.1",
     "babel-plugin-add-module-exports": "^0.1.2",
@@ -21,6 +22,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "babel-register": "^6.26.0",
     "babel-runtime": "^6.3.19",
+    "base64-img": "^1.0.4",
     "bignumber.js": "^6.0.0",
     "moment": "^2.21.0",
     "mongodb": "^3.0.4",

@@ -3,6 +3,7 @@ const winston = require('winston');
 const BigNumber = require('bignumber.js');
 const Twit = require('twit');
 const rp = require('request-promise');
+const base64Img = require('base64-img');
 
 const SolidityCoder = require('web3/lib/solidity/coder.js');
 const config = require('./config.json');
@@ -34,25 +35,8 @@ const main = async () => {
 	try {
 		const dclMarketContract = web3.eth.contract(DCL_MARKET_ABI);
 		const dclMarketInstance = dclMarketContract.at(DCL_MARKET_ADDRESS);
-		// const auctionCreatedEvent = dclMarketInstance.AuctionCreated({}, {}, async (err, eventData) => {
-		// 	if (err) {
-		// 		winston.error(err);
-		// 		return false;
-		// 	}
-		// 	console.log(eventData)
-		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-		// 	const landPrice = eventData.args.priceInWei.toNumber() / 10 ** MANA_DECIMALS;
-		// 	let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-		// 	usdPrice = landPrice * parseFloat(usdPrice[0].price_usd);
-		// 	const expiry = new Date(eventData.args.expiresAt.toNumber()).toDateString();
-		// 	winston.verbose(eventData.transactionHash);
-		// 	winston.info(`auctionCreatedEvent data: assetId [${assetId}] | MANAprice ${landPrice} (${usdPrice} USD) | expiry ${expiry}`);
-		// 	T.post('statuses/update', { status: `Auction created... \n\n Coordinates: [${assetId}] \n Price: ${landPrice} MANA ($${usdPrice} USD) \n Expiry: ${expiry}` }, (err, data, response) => {
-		// 		if (err) winston.error(err);
-		// 	});
-		// });
 
-		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {}, async (err, eventData) => {
+		const auctionSuccessfulEvent = dclMarketInstance.AuctionSuccessful({}, {fromBlock: 5883089}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
@@ -60,31 +44,41 @@ const main = async () => {
 			console.log(eventData)
 			const assetId = decodeTokenId(eventData.args.assetId.toString(16));
 			const landPrice = eventData.args.totalPrice.toNumber() / 10 ** MANA_DECIMALS;
-			let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
-			usdPrice = Math.round(landPrice * parseFloat(usdPrice[0].price_usd) * 100) / 100;
+			// let usdPrice = JSON.parse(await rp('https://api.coinmarketcap.com/v1/ticker/decentraland/?convert=USD'));
+			usdPrice = 100 //Math.round(landPrice * parseFloat(usdPrice[0].price_usd) * 100) / 100;
 			winston.verbose(eventData.transactionHash);
 			const logString = `Auction successful! \n\n Coordinates: [${assetId}] \n Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)`;
 			winston.verbose(logString);
 			if (!config.disableTwitter) {
-				T.post('statuses/update', { status: logString }, (err, data, response) => {
-					if (err) winston.error(err);
+				//
+				// post a tweet with media
+				//
+				const imgURL = `https://api.decentraland.org/v1/map.png?width=500&height=500&size=10&center=${assetId[0]},${assetId[1]}&selected=${assetId[0]},${assetId[1]}.png`;
+				console.log('imgURL ', imgURL);
+				base64Img.requestBase64(imgURL, function(err, res, body) {
+  				console.log('body ', body, body.length)
 				});
+				// T.post('media/upload', { media_data: b64content }, function (err, data, response) {
+				//   const mediaIdStr = data.media_id_string
+				//   const altText = 'Decentraland Parcel Sale';
+				//   const meta_params = { media_id: mediaIdStr, alt_text: { text: altText } }
+				// 	if (!err) {
+				// 		T.post('media/metadata/create', meta_params, function (err, data, response) {
+				// 	    if (!err) {
+				// 	      const params = { status: logString, media_ids: [mediaIdStr] }
+				// 	      T.post('statuses/update', params, function (err, data, response) {
+				// 					if (err) winston.error('statuses/update ', err);
+				// 	      })
+				// 	    } else {
+				// 				winston.error('media/metadata ', err);
+				// 			}
+				// 	  })
+				// 	} else {
+				// 		winston.error('media/upload ', err);
+				// 	}
+				// })
 			}
 		});
-
-		// const auctionCancelledEvent = dclMarketInstance.AuctionCancelled({}, {}, (err, eventData) => {
-		// 	if (err) {
-		// 		winston.error(err);
-		// 		return false;
-		// 	}
-		// 	console.log(eventData)
-		// 	const assetId = decodeTokenId(eventData.args.assetId.toString(16));
-		// 	winston.verbose(eventData.transactionHash);
-		// 	winston.info(`auctionCancelledEvent data: assetId [${assetId}]`);
-		// 	T.post('statuses/update', { status: `Auction cancelled... \n\n Coordinates: [${assetId}]` }, (err, data, response) => {
-		// 		if (err) winston.error(err);
-		// 	});
-		// });
 	} catch(err) {
 		winston.error(err);
 	}
