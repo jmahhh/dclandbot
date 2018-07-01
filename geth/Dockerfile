@@ -16,6 +16,6 @@ CMD ["geth", \
 	"--rpc", \
 	"--rpcaddr", "0.0.0.0", \
 	"--rpccorsdomain", "'*'", \
-	"--rpcapi", "eth,net,web3,admin" \
+	"--rpcapi", "eth,net,web3,admin,personal" \
 	# "--rpcvhosts", "*" \
 ]

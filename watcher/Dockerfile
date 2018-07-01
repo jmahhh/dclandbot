@@ -19,4 +19,4 @@ RUN apk add git
 COPY /watcher_js /watcher_js
 RUN cd watcher_js && npm install
 CMD ["node", "watcher_js/main.js"]
-# CMD ["sleep", "3600"]
+#CMD ["sleep", "3600"]
