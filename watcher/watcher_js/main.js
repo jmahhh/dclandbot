@@ -66,7 +66,7 @@ const main = async () => {
 				//
 				// post a tweet with media
 				//
-				const imgURL = `https://api.decentraland.org/v1/map.png?width=500&height=500&size=10&center=${assetId[0]},${assetId[1]}&selected=${assetId[0]},${assetId[1]}.png`;
+				const imgURL = `https://api.decentraland.org/parcels/${assetId[0]}/${assetId[1]}/map.png?height=500&width=500&size=10`;
 				const b64content = await getBase64(imgURL);
 				T.post('media/upload', { media_data: b64content }, function (err, data, response) {
 				  const mediaIdStr = data.media_id_string
