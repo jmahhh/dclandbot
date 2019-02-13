@@ -4,7 +4,9 @@ services:
   geth:
     # build: ./geth
     image: ethereum/client-go:stable
-    command: --rpc --rpcaddr 0.0.0.0 --rpcvhosts "*" --rpccorsdomain "*" --rpcport 8545 --rpcapi "eth" 
+    command: --rpc --rpcaddr 0.0.0.0 --rpcvhosts "*" --rpccorsdomain "*" --rpcport 8545 --rpcapi "eth"
+    ports:
+      - 127.0.0.1:8545:8545
     healthcheck:
       test: geth attach http://127.0.0.1:8545
       interval: 5s
@@ -21,3 +23,4 @@ services:
     restart: on-failure
 volumes:
   geth-vol:
+
