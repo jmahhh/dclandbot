@@ -1,2 +1,2 @@
 # dclandbot
-Tweets LAND auction events from the Decentraland Marketplace. 
+Tweets LAND and EST auction events from the Decentraland Marketplace. 
