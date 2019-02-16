@@ -19,7 +19,7 @@ const main = async () => {
 		const dclMarketContract = web3.eth.contract(abis.MPLACE_ABI);
 		const dclMarketInstance = dclMarketContract.at(utils.MPlACE_ADDR);
 
-		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, {fromBlock: 7224845 }, async (err, eventData) => {
+		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, {}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
