@@ -17,6 +17,6 @@ COPY --from=builder go/go-ethereum/build/bin/geth /usr/local/bin/
 RUN apk update
 RUN apk add git
 COPY /watcher_js /watcher_js
-RUN cd watcher_js && npm install
+RUN cd watcher_js && npm install && npm audit fix
 CMD ["node", "watcher_js/main.js"]
 #CMD ["sleep", "3600"]
