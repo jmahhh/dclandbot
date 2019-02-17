@@ -16,9 +16,10 @@ const T = new Twit(config.twitter);
 
 const main = async () => {
 	try {
+		const blockFilter = config.fromBlock ? { fromBlock: config.fromBlock } : {};
 		const dclMarketContract = web3.eth.contract(abis.MPLACE_ABI);
 		const dclMarketInstance = dclMarketContract.at(utils.MPlACE_ADDR);
-		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, {fromBlock: 7228113}, async (err, eventData) => {
+		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, blockFilter, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
