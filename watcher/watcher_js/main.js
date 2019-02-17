@@ -18,8 +18,7 @@ const main = async () => {
 	try {
 		const dclMarketContract = web3.eth.contract(abis.MPLACE_ABI);
 		const dclMarketInstance = dclMarketContract.at(utils.MPlACE_ADDR);
-
-		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, {}, async (err, eventData) => {
+		const auctionSuccessfulEvent = dclMarketInstance.OrderSuccessful({}, {fromBlock: 7228113}, async (err, eventData) => {
 			if (err) {
 				winston.error(err);
 				return false;
@@ -34,14 +33,28 @@ const main = async () => {
 				case utils.LAND_ADDR:
 					const coords = utils.decodeTokenId(eventData.args.assetId.toString(16));
 					mplaceURL = `https://market.decentraland.org/${coords[0]}/${coords[1]}/detail`;
-					logString = `Auction successful! \n\nLAND Coordinates: [${coords[0]}, ${coords[1]}] \nPrice: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD) \n${mplaceURL}`;
+					logString =
+					`
+					Auction successful! \n
+					LAND Coordinates: [${coords[0]}, ${coords[1]}]
+					Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)
+					${mplaceURL}
+					`;
 					imgURL = `https://api.decentraland.org/v1/parcels/${coords[0]}/${coords[1]}/map.png?height=500&width=500&size=10`;
 					break;
 				case utils.EST_ADDR:
 					const tokenId = eventData.args.assetId.toNumber();
+					const size = utils.getEstateSize(web3, tokenId);
 					// coords = utils.getEstateLandCoords(web3, tokenId);
 					mplaceURL = `https://market.decentraland.org/estates/${tokenId}/detail`;
-					logString = `Auction successful! \n\nEstate Id: ${tokenId} \nPrice: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD) \n${mplaceURL}`;
+					logString =
+					`
+					Auction successful! \n
+					Estate Id: ${tokenId}
+					Estate Size: ${size} parcels
+					Price: ${landPrice.toLocaleString()} MANA ($${usdPrice.toLocaleString()} USD)
+					${mplaceURL}
+					`;
 					imgURL = `https://api.decentraland.org/v1/estates/${tokenId}/map.png?height=500&width=500&size=10`;
 					break;
 				default:

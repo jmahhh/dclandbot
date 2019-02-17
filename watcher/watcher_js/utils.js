@@ -22,7 +22,7 @@ const decodeTokenId = (hexRepresentation) => {
   return [ x.toString(10), y.toString(10) ];
 }
 
-const getEstateLandCoords= (web3, tokenId) => {
+const getEstateLandCoords = (web3, tokenId) => {
 	const estContract = web3.eth.contract(abis.EST_ABI);
 	const estInstance = estContract.at(EST_ADDR);
 	const amount = estInstance.getEstateSize(tokenId);
@@ -32,6 +32,12 @@ const getEstateLandCoords= (web3, tokenId) => {
 		coords.push(decodeTokenId(hexRep));
 	}
 	return coords;
+}
+
+const getEstateSize = (web3, tokenId) => {
+  const estContract = web3.eth.contract(abis.EST_ABI);
+  const estInstance = estContract.at(EST_ADDR);
+  return estInstance.getEstateSize(tokenId);
 }
 
 const getBase64 = (url) => {
@@ -51,3 +57,4 @@ exports.CMC_API = 'https://api.coinmarketcap.com/v1/ticker/decentraland/?convert
 exports.decodeTokenId = decodeTokenId;
 exports.getBase64 = getBase64;
 exports.getEstateLandCoords = getEstateLandCoords;
+exports.getEstateSize = getEstateSize;
